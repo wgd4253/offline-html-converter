@@ -74,6 +74,10 @@
   .btn-ghost { background: #f1f5f9; color: #334155; margin-top: 12px; width: 100%; padding: 10px; }
   .btn-ghost:hover { background: #e2e8f0; }
 
+  .top-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .btn-save { background: #334155; color: white; font-size: 12px; padding: 8px 16px; white-space: nowrap; }
+  .btn-save:hover { background: #1e293b; }
+  .btn-save i { margin-right: 4px; }
   .info-libs { margin-top: 24px; padding: 14px 16px; background: #f8fafc; border-left: 4px solid #0057D9; border-radius: 6px; }
   .info-libs .title { font-size: 12px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
   .info-libs table { width: 100%; font-size: 11px; border-collapse: collapse; }
@@ -84,7 +88,10 @@
 <body>
 <div class="container">
   <div class="card">
-    <h1><i class="fa-solid fa-arrow-down-up-across-line"></i> HTML 오프라인 변환기 v2</h1>
+    <div class="top-row">
+      <h1><i class="fa-solid fa-arrow-down-up-across-line"></i> HTML 오프라인 변환기 v2</h1>
+      <button class="btn btn-save" onclick="saveSelf()"><i class="fa-solid fa-download"></i> 변환기 다운로드</button>
+    </div>
     <p class="subtitle">
       외부 CDN 의존성이 있는 HTML을 폐쇄망에서도 동작하는 단일 파일로 변환합니다.
       <br><span class="badge"><i class="fa-solid fa-bolt"></i> 내장 라이브러리 6종 + 미매칭 리소스 fetch 폴백</span>
@@ -304,6 +311,15 @@ const SYSTEM_FONT_RULES = [
 
 // ==== UI 유틸 ====
 const $ = id => document.getElementById(id);
+function saveSelf() {
+  var html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'HTML_오프라인_변환기_v2.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+}
 const setStatus = (text, cls='') => {
   $('statusText').className = 'file-status ' + cls;
   $('statusText').textContent = text;
