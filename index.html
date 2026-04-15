@@ -409,9 +409,8 @@ function normalizeUrl(u) {
   return u.startsWith('//') ? 'https:' + u : u;
 }
 function escapeForInline(text, tag) {
-  // Prevent premature </script> or </style> from terminating our wrapper
-  return text
-    .replace(/<\/(script|style|html|body|head)/gi, '<\\/$1');
+  var re = new RegExp('<\\/(script|style|html|body|head)', 'gi');
+  return text.replace(re, '<\\/$1');
 }
 
 // ==== 변환 메인 ====
@@ -433,8 +432,11 @@ async function convert(originalHtml, filename) {
   }
 
   // body 폰트 fallback 삽입 (아이콘 폰트는 건드리지 않음)
-  const fontFallback = `<style>body { font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', 'Apple SD Gothic Neo', sans-serif; }</style>`;
-  html = html.replace(/<\/head>/i, fontFallback + '\n</head>');
+  var styleOpen = '<' + 'style>';
+  var styleClose = '</' + 'style>';
+  var headClose = '</' + 'head>';
+  const fontFallback = styleOpen + 'body { font-family: "Noto Sans KR", "Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo", sans-serif; }' + styleClose;
+  html = html.replace(new RegExp('<\\/head>', 'i'), fontFallback + '\n' + headClose);
 
   // EUC-KR 메타 정리
   html = html.replace(/<meta\s+http-equiv=["']Content-Type["']\s+content=["']text\/html;\s*charset=EUC-KR["']\s*\/?>/gi, '<!-- EUC-KR meta removed (using UTF-8) -->');
@@ -464,9 +466,9 @@ async function convert(originalHtml, filename) {
       log(`[${idx+1}/${tasks.length}] <span class="l-ok">내장</span> ${rule.label} ← ${label}`, 'info');
       const libText = escapeForInline(EMBEDDED[rule.key]());
       if (t.kind === 'script') {
-        t.replacement = `<script>${libText}</script>`;
+        t.replacement = '<' + 'script>' + libText + '</' + 'script>';
       } else {
-        t.replacement = `<style>${libText}</style>`;
+        t.replacement = '<' + 'style>' + libText + '</' + 'style>';
       }
       stats.embedded++;
     } else {
@@ -485,9 +487,9 @@ async function convert(originalHtml, filename) {
         text = text.replace(/\/\*#\s*sourceMappingURL=.*?\*\//g, '');
         text = escapeForInline(text);
         if (t.kind === 'script') {
-          t.replacement = `<script>${text}</script>`;
+          t.replacement = '<' + 'script>' + text + '</' + 'script>';
         } else {
-          t.replacement = `<style>${text}</style>`;
+          t.replacement = '<' + 'style>' + text + '</' + 'style>';
         }
         log(`  ↳ 성공 (${(text.length/1024).toFixed(1)} KB)`, 'ok');
         stats.fetched++;
